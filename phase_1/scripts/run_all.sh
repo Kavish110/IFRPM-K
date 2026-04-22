@@ -1,36 +1,28 @@
 #!/bin/bash
-# run_all.sh
+# NGAFID ML Pipeline Master Script
+# Usage: ./scripts/run_all.sh --model cnn --size_ratio 0.1 --debug true
 
 # Default parameters
-DATASET_PATH="data/processed/ngafid_sample.csv"
-ROWS=500
+DATASET="ngafid"
+SIZE_RATIO="0.1"
 MODEL="cnn"
+DEBUG="true"
+TASK="all"
 
 # Parse arguments
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        --dataset) DATASET_PATH="$2"; shift ;;
-        --rows) ROWS="$2"; shift ;;
+        --dataset) DATASET="$2"; shift ;;
+        --size_ratio) SIZE_RATIO="$2"; shift ;;
         --model) MODEL="$2"; shift ;;
-        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+        --debug) DEBUG="$2"; shift ;;
+        --task) TASK="$2"; shift ;;
+        *) echo "Unknown parameter: $1"; exit 1 ;;
     esac
     shift
 done
 
-echo "=================================="
-echo " Running NGAFID ML Pipeline Tasks"
-echo " Dataset: $DATASET_PATH"
-echo " Rows: $ROWS"
-echo " Model: $MODEL"
-echo "=================================="
+echo "Starting NGAFID Production Pipeline..."
+echo "Model: $MODEL | Size Ratio: $SIZE_RATIO | Debug: $DEBUG"
 
-echo "[1/3] Running Classification..."
-python main.py --dataset "$DATASET_PATH" --rows "$ROWS" --model "$MODEL" --task classification
-
-echo "[2/3] Running RUL Regression..."
-python main.py --dataset "$DATASET_PATH" --rows "$ROWS" --model "$MODEL" --task rul
-
-echo "[3/3] Running Explainability..."
-python main.py --dataset "$DATASET_PATH" --rows "$ROWS" --model "$MODEL" --task explain
-
-echo "All tasks finished!"
+python main.py --dataset "$DATASET" --size_ratio "$SIZE_RATIO" --model "$MODEL" --debug "$DEBUG" --task "$TASK"
