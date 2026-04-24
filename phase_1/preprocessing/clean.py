@@ -1,30 +1,44 @@
+"""
+Preprocessing: clean.py
+Handle missing values for NGAFID sensor data.
+- Forward fill within each flight group
+- Fallback: feature median across dataset
+- No smoothing (keep raw signals per spec)
+"""
+
 import pandas as pd
 import numpy as np
+from utils.logger import get_logger
 
-def clean_data(df, numeric_cols, rolling_window=5):
+logger = get_logger("clean")
+
+
+def clean_flight_data(df, feature_cols, group_col="Master Index"):
     """
-    Impute missings, clean data, and apply low-pass filtering to reduce noise.
+    Clean sensor data per-flight:
+    1. Forward fill within each flight group
+    2. Fill any remaining NaN with dataset-wide feature median
     """
     df = df.copy()
-    
-    # 1. Forward fill and backward fill for missings in numeric columns
-    for col in numeric_cols:
-        df[col] = df[col].ffill().bfill()
-        # Fill any remaining NaNs with column mean
-        if df[col].isnull().any():
-            df[col] = df[col].fillna(df[col].mean())
-            
-        # 2. Apply rolling mean as low-pass filter (noise handling)
-        # We group by nothing here because we assume it's done flight-by-flight 
-        # or we accept minor cross-boundary smoothing, but ideally it's per flight
-        # For simplicity, we just apply it directly if we do it in dataloader per group
-    
-    return df
 
-def apply_smoothing_per_group(df, group_col, numeric_cols, window=5):
-    """
-    Applies smoothing grouped by flight to prevent sequence crossover.
-    """
-    for col in numeric_cols:
-        df[col] = df.groupby(group_col)[col].transform(lambda x: x.rolling(window, min_periods=1).mean())
+    # Compute dataset-wide medians before group operations (for fallback)
+    feature_medians = df[feature_cols].median()
+
+    logger.info(f"NaN count before cleaning: {df[feature_cols].isna().sum().sum()}")
+
+    # Forward fill within each flight
+    # We use transform which respects the group boundaries
+    for col in feature_cols:
+        df[col] = df.groupby(group_col)[col].transform(lambda x: x.ffill())
+
+    # Fallback: fill remaining NaN with dataset median
+    for col in feature_cols:
+        if df[col].isna().any():
+            df[col] = df[col].fillna(feature_medians[col])
+
+    # Final safety: fill any remaining with 0
+    df[feature_cols] = df[feature_cols].fillna(0)
+
+    logger.info(f"NaN count after cleaning: {df[feature_cols].isna().sum().sum()}")
+
     return df
