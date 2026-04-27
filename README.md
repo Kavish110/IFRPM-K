@@ -15,7 +15,7 @@ IFRPM/
 │       ├── seed.py             # Database seeding script
 │       ├── ml/                 # Machine learning modules
 │       │   ├── inference.py    # Model inference logic
-│       │   ├── loader.py       # Model loading utilities
+        │       │   ├── loader.py       # Model loading utilities
 │       │   └── stub.py         # ML stub implementations
 │       ├── models/             # SQLAlchemy database models
 │       │   ├── aircraft.py     # Aircraft model

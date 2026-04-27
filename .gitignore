@@ -28,3 +28,5 @@ phase_1/data/
 phase_1/outputs/
 phase_1/venv/
 phase_1/__pycache__/
+
+./graphify-out/*
