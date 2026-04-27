@@ -49,3 +49,13 @@ IFRPM/
 ├── notebooks/                  # Jupyter notebooks for analysis
 └── requirements.txt            # Python dependencies
 ```
+
+## Predictive Maintenance Engine
+
+The IFRPM backend inference engine supports a dynamic multi-model ensemble for calculating Remaining Useful Life (RUL).
+
+By default, the application will scan the `/models/` directory alongside the API and automatically ingest supported weights:
+- **Scikit-Learn Pickles (`.pkl`)**: Automatically loaded via `joblib/pickle` (e.g. `ngafid.pkl`, `battery_xgb_model.pkl`).
+- **Keras/TensorFlow Weights (`.h5`)**: Automatically compiled leveraging `tensorflow`.
+
+The `/api/rul` and health endpoints will automatically compute an average of output predictions across your loaded `.pkl` and `.h5` model nodes, safely bypassing missing expected components so dev environments won't crash when working iteratively.
